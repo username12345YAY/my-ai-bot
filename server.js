@@ -1,15 +1,25 @@
 // server.js
 const express = require("express");
 const cors = require("cors");
-const fetch = global.fetch;
+const fetch = require("node-fetch"); // ✅ proper fetch import
 require("dotenv").config();
 
 const app = express();
-app.use(cors());
+
+// ✅ strong CORS: allow GitHub Pages and any browser
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
 const OPENAI_KEY = process.env.OPENAI_KEY;
 
+// ✅ chat endpoint
 app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message || "";
@@ -23,7 +33,7 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are a friendly helpful AI." },
+          { role: "system", content: "You are a friendly, helpful AI." },
           { role: "user", content: userMessage },
         ],
       }),
@@ -31,11 +41,16 @@ app.post("/chat", async (req, res) => {
 
     const data = await aiRes.json();
     const reply = data.choices?.[0]?.message?.content || "No reply";
+
     res.json({ reply });
   } catch (err) {
-    console.error(err);
+    console.error("Error in /chat route:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-app.listen(3000, () => console.log("AI server running on http://localhost:3000"));
+// ✅ important: use Render’s assigned port, not hard-coded 3000
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log(`AI server running on http://localhost:${PORT}`)
+);
