@@ -1,0 +1,3 @@
+# never commit secrets or heavy folders
+.env
+node_modules
